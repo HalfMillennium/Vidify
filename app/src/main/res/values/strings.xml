@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Vidify</string>
+    <string name="first_things">First things first.</string>
+    <string name="connect_spotify">Connect With Spotify</string>
+    <string name="select_playlist">Now, select the playlist of your choice.</string>
+</resources>
