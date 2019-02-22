@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     private String userId = null;
 
     private static Playlist selectedPlaylist;
+    private ProgressBar progressBar;
 
     private SpotifyService generalService;
     @Override
@@ -75,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
         if(userIsSignedIn())
         {
             setContentView(R.layout.playlist_selection_layout);
+            progressBar = findViewById(R.id.progressBar);
+            progressBar.getIndeterminateDrawable().setColorFilter(
+                    getResources().getColor(R.color.lighterPurple),
+                    android.graphics.PorterDuff.Mode.SRC_IN);
         }
     }
 
@@ -105,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
                 // Response was successful and contains auth token
                 case TOKEN:
                     setContentView(R.layout.playlist_selection_layout);
+                    progressBar = findViewById(R.id.progressBar);
+                    progressBar.getIndeterminateDrawable().setColorFilter(
+                            getResources().getColor(R.color.lighterPurple),
+                            android.graphics.PorterDuff.Mode.SRC_IN);
+
                     Toast.makeText(this, "You're signed in!", Toast.LENGTH_SHORT).show();
 
                     SpotifyApi api = new SpotifyApi();
@@ -114,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
                     final SpotifyService spotify = api.getService();
 
                     generalService = spotify;
-                    //doAsync();
                     new GetSpotifyInfo().execute();
                     //Log.d("user id", spotify.getMe().display_name);
 
@@ -189,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> adapter, View v, int position,
                                     long arg3)
             {
+                progressBar.setVisibility(View.VISIBLE);
                 new GetSpotifyPlaylist().execute(position);
             }
         });
@@ -197,9 +208,14 @@ public class MainActivity extends AppCompatActivity {
     private class GetSpotifyPlaylist extends AsyncTask<Integer, Void, Void> {
         @Override
         protected Void doInBackground(Integer... params) {
-            Playlist u = generalService.getPlaylist(userId, playlistSimples.get(params[0]).external_urls.toString()
-                    .substring(playlistSimples.get(params[0]).external_urls.toString().lastIndexOf("/")+1, playlistSimples.get(params[0]).external_urls.toString().lastIndexOf("}")));
-            Log.d("Playlist", u.name + ", owned by " + userId);
+            Playlist u = null;
+            try {
+                u = generalService.getPlaylist(userId, playlistSimples.get(params[0]).external_urls.toString()
+                        .substring(playlistSimples.get(params[0]).external_urls.toString().lastIndexOf("/")+1, playlistSimples.get(params[0]).external_urls.toString().lastIndexOf("}")));
+            } catch (Exception e) {
+                new GetSpotifyPlaylist().execute(params[0]);
+            }
+            //Log.d("Playlist", u.name + ", owned by " + userId);
             selectedPlaylist = u;
             Intent intent = VideoListView.makeIntent(MainActivity.this);
             startActivity(intent);

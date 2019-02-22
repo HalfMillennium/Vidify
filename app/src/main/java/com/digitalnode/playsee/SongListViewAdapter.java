@@ -1,6 +1,13 @@
 package com.digitalnode.playsee;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Typeface;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.TypefaceSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class SongListViewAdapter extends ArrayAdapter<String> implements View.OnClickListener{
 
@@ -64,15 +72,20 @@ public class SongListViewAdapter extends ArrayAdapter<String> implements View.On
         }
 
         lastPosition = position;
-        Log.d("song-SLVA",song);
-        viewHolder.txtTitle.setText(song.substring(0, song.lastIndexOf(":")));
+        //song.substring(0, song.lastIndexOf(":"))
+        String title = song.substring(0, song.lastIndexOf(":"));
+        //Log.d("song subs", song.substring(song.lastIndexOf(":")+1));
+        viewHolder.txtTitle.setText(title);
         String runtime = song.substring(song.lastIndexOf(":")+1);
+        ConvertTime convert = new ConvertTime(song.substring(song.lastIndexOf(":")+1));
+        viewHolder.txtRuntime.setText(convert.getFmtTime());
 
+        /*
         try {
             viewHolder.txtRuntime.setText(runtime.substring(2, runtime.lastIndexOf("M")) + ":" + runtime.substring(runtime.lastIndexOf("M")+1, runtime.length()-1));
         } catch (StringIndexOutOfBoundsException e) {
             viewHolder.txtRuntime.setText("0:" + runtime.substring(runtime.length()-2, runtime.length()-1));
-        }
+        }*/
 
         // Return the completed view to render on screen
         return convertView;

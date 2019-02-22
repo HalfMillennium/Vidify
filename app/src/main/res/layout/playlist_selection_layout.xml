@@ -7,6 +7,15 @@
     android:background="@color/offBlack"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="147dp"
+        android:layout_height="125dp"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:visibility="gone"
+        android:indeterminate="true" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
