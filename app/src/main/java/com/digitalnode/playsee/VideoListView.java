@@ -1,76 +1,28 @@
 package com.digitalnode.playsee;
 
-import android.Manifest;
-import android.accounts.AccountManager;
-import android.app.Activity;
-import android.app.AppComponentFactory;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.hardware.SensorManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.OrientationEventListener;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
+import com.digitalnode.playsee.BingSearchApi.BingSearch;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
-import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GooglePlayServicesAvailabilityIOException;
-import com.google.api.client.googleapis.extensions.android.gms.auth.UserRecoverableAuthIOException;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.util.ExponentialBackOff;
-import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.YouTubeScopes;
-import com.google.api.services.youtube.model.Channel;
-import com.google.api.services.youtube.model.ChannelListResponse;
-import com.google.api.services.youtube.model.Video;
-import com.google.api.services.youtube.model.VideoListResponse;
 
-import org.mortbay.jetty.Main;
-
-import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import kaaes.spotify.webapi.android.models.Playlist;
 import kaaes.spotify.webapi.android.models.PlaylistTrack;
-import kaaes.spotify.webapi.android.models.PlaylistTracksInformation;
-import pub.devrel.easypermissions.AfterPermissionGranted;
-import pub.devrel.easypermissions.EasyPermissions;
-
-import androidx.annotation.NonNull;
-import androidx.lifecycle.Lifecycle;
-import androidx.recyclerview.widget.RecyclerView;
 
 public class VideoListView extends YouTubeBaseActivity {
 
@@ -104,7 +56,6 @@ public class VideoListView extends YouTubeBaseActivity {
     private static final String TAG = "VideoListView";
 
     private String currently_playing = null;
-    private View previous = null;
 
     private ArrayList<String> debugPlaylist;
 
@@ -161,22 +112,32 @@ public class VideoListView extends YouTubeBaseActivity {
 
     public void getUserPlaylist()
     {
-        list = MainActivity.getSelPlaylist();
-        ArrayList<PlaylistTrack> allSongs = (ArrayList) list.tracks.items;
+        ArrayList<PlaylistTrack> allSongs = MainActivity.allTracks;
         for(PlaylistTrack track : allSongs)
         {
             songs.add(track.track.name.replaceAll(" ", "%20") + "--" + track.track.artists.get(0).name.replaceAll(" ", "%20"));
             songsPres.add(track.track.name + " - " + track.track.artists.get(0).name + ":");
+            Log.d(track.track.name, track.track.artists.get(0).name);
         }
     }
     /*** Why am I doing this in two steps? Because I felt like it. ***/
     public void getUrls() {
         try {
+            Toast.makeText(this, "# Songs: " + songs.size(), Toast.LENGTH_SHORT).show();
             for (int i = 0; i < songs.size(); i++) {
+                /*
                 YoutubeSearch search = new YoutubeSearch(songs.get(i));
                 videoIDs.add(search.getID());
                 songsPres.set(i, songsPres.get(i) + search.getRuntime());
                 Log.d("song", search.getID());
+                */
+
+                BingSearch search = new BingSearch(songs.get(i));
+                Log.d(TAG, search.getRuntime());
+
+                videoIDs.add(search.getVideoId());
+                songsPres.set(i, songsPres.get(i) + search.getRuntime());
+                Log.d(TAG, search.getVideoId());
             }
         } catch (NullPointerException e) {
             Toast.makeText(this, "Whoops! That's our bad. Try again later.", Toast.LENGTH_SHORT).show();
@@ -185,12 +146,6 @@ public class VideoListView extends YouTubeBaseActivity {
     }
 
     public static Intent makeIntent(Context context) { return new Intent(context, VideoListView.class); }
-
-    public static void restartActivity(Activity activity){
-        activity.finish();
-        activity.startActivity(activity.getIntent());
-    }
-
 
     /****** YOUTUBE PLAYER API *******/
     public void setUpPlayer()
@@ -278,42 +233,11 @@ public class VideoListView extends YouTubeBaseActivity {
         }
     }
 
-    public void resetHighlight()
+    private class SearchBing extends AsyncTask<String, Void, BingSearch>
     {
-        for(int i = 0; i < debugPlaylist.size(); i++)
-        {
-            View item = getViewByPosition(i, listView);
-            TextView title = item.findViewById(R.id.title);
-            TextView runtime = item.findViewById(R.id.runtime);
-
-            if(debugPlaylist.get(i).equals(currently_playing))
-            {
-                title.setTextColor(getResources().getColor(R.color.lighterPurple));
-                runtime.setTextColor(getResources().getColor(R.color.lighterPurple));
-            } else {
-                title.setTextColor(getResources().getColor(R.color.lighterPurple));
-                runtime.setTextColor(getResources().getColor(R.color.lighterPurple));
-            }
-
+        @Override
+        protected BingSearch doInBackground(String... params) {
+            return new BingSearch(params[0]);
         }
     }
-
-    /*
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        checkOrientation(newConfig);
-    }
-
-    private void checkOrientation(Configuration newConfig){
-        // Checks the orientation of the screen
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            Toast.makeText(this, "LANDSCAPE", Toast.LENGTH_SHORT).show();
-            player.setFullscreen(true);
-        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            Toast.makeText(this, "PORTRAIT", Toast.LENGTH_SHORT).show();
-            player.setFullscreen(false);
-        }
-    }
-    */
 }

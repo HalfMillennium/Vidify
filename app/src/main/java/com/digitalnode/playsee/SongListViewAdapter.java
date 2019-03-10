@@ -28,6 +28,8 @@ import java.util.concurrent.TimeUnit;
 
 public class SongListViewAdapter extends ArrayAdapter<String> implements View.OnClickListener{
 
+    private final String TAG = "SongListViewActivity";
+
     private ArrayList<String> dataSet;
     Context mContext;
 
@@ -57,6 +59,8 @@ public class SongListViewAdapter extends ArrayAdapter<String> implements View.On
         String song = dataSet.get(position);
         // Check if an existing view is being reused, otherwise inflate the view
         ViewHolder viewHolder; // view lookup cache stored in tag
+
+        Log.d(TAG, song);
 
         if (convertView == null) {
 

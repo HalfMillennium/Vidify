@@ -14,6 +14,8 @@ public class ConvertTime {
 
     public ConvertTime(String date) {
 
+        Log.d("date-TEST", date);
+
         regexMap.put("PT(\\d\\d)S", "00:$1");
         regexMap.put("PT(\\d\\d)M", "$1:00");
         regexMap.put("PT(\\d\\d)H", "$1:00:00");

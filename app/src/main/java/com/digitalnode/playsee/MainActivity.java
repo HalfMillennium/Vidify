@@ -32,6 +32,7 @@ import org.mortbay.jetty.Main;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -59,12 +60,13 @@ public class MainActivity extends AppCompatActivity {
 
     private SpotifyAppRemote mSpotifyAppRemote;
     private ArrayList<String> playlistNames = new ArrayList<>();
-    private ArrayList<Playlist> allPlaylists = new ArrayList<>();
 
     private ArrayList<PlaylistSimple> playlistSimples = new ArrayList<>();
     private String userId = null;
 
     private static Playlist selectedPlaylist;
+    public static ArrayList<PlaylistTrack> allTracks = new ArrayList<>(), trackConstants = new ArrayList<>();
+    // trackConstants --> immutable (by choice) list of tracks
     private ProgressBar progressBar;
 
     private SpotifyService generalService;
@@ -73,7 +75,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        getSupportActionBar().hide();
         if(userIsSignedIn())
         {
             setContentView(R.layout.playlist_selection_layout);
@@ -137,9 +138,9 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 playlistNames.add(list.name);
                                 playlistSimples.add(list);
-                                Log.d("username", list.owner.display_name);
+
                                 Log.d("code", list.external_urls.toString()
-                                                    .substring(list.external_urls.toString().lastIndexOf("/")+1, list.external_urls.toString().lastIndexOf("}")));
+                                        .substring(list.external_urls.toString().lastIndexOf("/")+1, list.external_urls.toString().lastIndexOf("}")));
                             }
 
                             setUpListView();
@@ -151,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-                    updateUI();
                     break;
 
                 // Auth flow returned an error
@@ -177,11 +177,6 @@ public class MainActivity extends AppCompatActivity {
 
         protected void onPostExecute(Void aVoid) {
         }
-    }
-
-    public void updateUI()
-    {
-
     }
 
     /****** SPOTIFY API ******/
@@ -215,10 +210,22 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 new GetSpotifyPlaylist().execute(params[0]);
             }
-            //Log.d("Playlist", u.name + ", owned by " + userId);
+
             selectedPlaylist = u;
-            Intent intent = VideoListView.makeIntent(MainActivity.this);
-            startActivity(intent);
+            for(PlaylistTrack track : selectedPlaylist.tracks.items)
+            {
+                trackConstants.add(track);
+            }
+
+            if(selectedPlaylist.tracks.items.size() <= 20) {
+                allTracks = trackConstants;
+                Intent intent = VideoListView.makeIntent(MainActivity.this);
+                startActivity(intent);
+            } else {
+                Intent intent = SongSelectionActivity.makeIntent(MainActivity.this);
+                startActivity(intent);
+            }
+
             return null;
         }
 

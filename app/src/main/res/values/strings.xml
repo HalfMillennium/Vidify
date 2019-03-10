@@ -3,4 +3,7 @@
     <string name="first_things">First things first.</string>
     <string name="connect_spotify">Connect With Spotify</string>
     <string name="select_playlist">Now, select the playlist of your choice.</string>
+    <string name="select_songs">Select which songs you want Vidify to find music videos for.</string>
+    <string name="vidify_song_selections">Confirm Selections</string>
+
 </resources>
